@@ -81,15 +81,18 @@
     (cplusplus  . "http://cplusplus.com")))
 
 (defparameter *search-engines*
-  '((duckduckgo ("https://duckduckgo.com/?q="))
-    (hooktube   ("https://hooktube.com/results?search_query="))
-    (twitter    ("https://twitter.com/search?q="))
-    (wikipedia  ("https://en.wikipedia.org/w/index.php?search="
-		 "&title=Special%3ASearch"))
-    (github     ("https://github.com/search?utf8=%E2%9C%93&q="
-	         "&type="))
-    (wolfram    ("https://www.wolframalpha.com/input/?i="))
-    (cplusplus  ("http://cplusplus.com/search.do?q="))))
+  '((duckduckgo   ("https://duckduckgo.com/?q="))
+    (startpage    ("https://startpage.com/do/search?language=english&cat=web&query="))
+    (hooktube     ("https://hooktube.com/results?search_query="))
+    (twitter      ("https://twitter.com/search?q="))
+    (wikipedia    ("https://en.wikipedia.org/w/index.php?search="
+		   "&title=Special%3ASearch"))
+    (github       ("https://github.com/search?utf8=%E2%9C%93&q="
+	           "&type="))
+    (wolfram      ("https://www.wolframalpha.com/input/?i="))
+    (cplusplus    ("http://cplusplus.com/search.do?q="))
+    (urbandict    ("https://urbandictionary.com/define.php?term="))
+    (knowyourmeme ("http://knowyourmeme.com/search?q="))))
 
 (defparameter *zeal-docs*
   '((c           . "c")
