@@ -34,10 +34,11 @@ extensions and the core lib of the language at most. This is because I use this 
 several times per day, and so I need it to open as fast as it can.
 
 Powerlisp also assumes, by default, that you like its black-and-white theme, and that you have
-dmenu and Firefox installed. It also assumes that you like my favorite websites, search engines,
-and that you use DuckDuckGo as your default search engine. If you don't like any or all of
-these, don't worry; as I just said, go ahead and change this script, hack it as much as you
-want. Just remember to not hurt the MIT License included, which I believe is permissive enough.
+dmenu, Firefox and Zeal installed. It also assumes that you like my favorite websites, search
+engines, programming languages, and that you use DuckDuckGo as your default search engine. If
+you don't like any or all of these, don't worry; as I just said, go ahead and change this
+script, hack it as much as you want. Just remember to not hurt the MIT License included, which
+I believe is permissive enough.
 
 ## Why would you use Common Lisp?
 

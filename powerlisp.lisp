@@ -30,6 +30,7 @@
 ;;; - DuckDuckGo as default search engine
 ;;; - dmenu as launcher
 ;;; - Firefox as browser
+;;; - Zeal as documentation reader
 ;;; Do not forget to change those to your liking. Hack this file as much as you can.
 
 ;;; Run this file using:
@@ -49,6 +50,7 @@
 (defparameter *default-search-engine* 'duckduckgo)
 (defparameter *browser-command* "/usr/bin/firefox")
 (defparameter *notify-command* "/usr/bin/notify-send")
+(defparameter *zeal-command* "/usr/bin/zeal")
 (defparameter *input-command*
   (list "/usr/bin/dmenu"
 	"-b"
@@ -61,33 +63,51 @@
      
 				
 ;; ============================================
-;; Websites and search engines
+;; Websites, search engines, services
 
 (defparameter *favorite-websites*
-  '((reddit . "https://reddit.com")
-    (twitter . "https://twitter.com")
-    (mastodon . "https://mastodon.gamedev.place")
-    (netflix . "https://netflix.com")
-    (hooktube . "https://hooktube.com")
+  '((reddit     . "https://reddit.com")
+    (twitter    . "https://twitter.com")
+    (mastodon   . "https://mastodon.gamedev.place")
+    (netflix    . "https://netflix.com")
+    (hooktube   . "https://hooktube.com")
     (protonmail . "https://mail.protonmail.com/login")
-    (github . "https://github.com")
-    (linkedin . "https://linkedin.com")
+    (github     . "https://github.com")
+    (linkedin   . "https://linkedin.com")
     (hackernews . "https://news.ycombinator.com")
-    (slashdot . "https://slashdot.org")
-    (instagram . "https://instagram.com")
-    (whatsapp . "https://web.whatsapp.com")
-    (cplusplus . "http://cplusplus.com")))
+    (slashdot   . "https://slashdot.org")
+    (instagram  . "https://instagram.com")
+    (whatsapp   . "https://web.whatsapp.com")
+    (cplusplus  . "http://cplusplus.com")))
 
 (defparameter *search-engines*
   '((duckduckgo ("https://duckduckgo.com/?q="))
-    (hooktube ("https://hooktube.com/results?search_query="))
-    (twitter ("https://twitter.com/search?q="))
-    (wikipedia ("https://en.wikipedia.org/w/index.php?search="
-		"&title=Special%3ASearch"))
-    (github ("https://github.com/search?utf8=%E2%9C%93&q="
-	     "&type="))
-    (wolfram ("https://www.wolframalpha.com/input/?i="))
-    (cplusplus ("http://cplusplus.com/search.do?q="))))
+    (hooktube   ("https://hooktube.com/results?search_query="))
+    (twitter    ("https://twitter.com/search?q="))
+    (wikipedia  ("https://en.wikipedia.org/w/index.php?search="
+		 "&title=Special%3ASearch"))
+    (github     ("https://github.com/search?utf8=%E2%9C%93&q="
+	         "&type="))
+    (wolfram    ("https://www.wolframalpha.com/input/?i="))
+    (cplusplus  ("http://cplusplus.com/search.do?q="))))
+
+(defparameter *zeal-docs*
+  '((c           . "c")
+    (c++         . "cpp")
+    (common-lisp . "lisp")
+    (css         . "css")
+    (emacs-lisp  . "elisp")
+    (erlang      . "erlang")
+    (go          . "go")
+    (haskell     . "haskell")
+    (html        . "html")
+    (js          . "javascript")
+    (julia       . "julia")
+    (latex       . "latex")
+    (markdown    . "markdown")
+    (php         . "php")
+    (processing  . "processing")
+    (rust        . "rust")))
 
 
 ;; ============================================
@@ -134,6 +154,16 @@ selection options. Yields the user input as a string."
   "Effectively calls the browser with the given website as argument."
   #+SBCL (sb-ext:run-program *browser-command* website :wait nil))
 
+(defun call-docs (docset-result search-query)
+  "Calls Zeal with the documentation we need."
+  #+SBCL (sb-ext:run-program
+	  *zeal-command*
+	  (list (concatenate 'string
+			     docset-result
+			     ":"
+			     search-query))
+	  :wait nil))
+
 
 ;; ============================================
 ;; User input processing
@@ -158,7 +188,8 @@ prepared URL as a string."
   (let ((engine-query-format (assoc engine *search-engines*)))
     (if (null engine-query-format)
 	(send-notification "POWERLISP: ERROR"
-			   (format nil "Cannot find search engine \"~a\"" engine))
+			   (format nil "Cannot find search engine \"~a\""
+				   engine))
         (let ((query-begin (caadr engine-query-format))
 	      (query-rest  (cdadr engine-query-format)))
 	  (concatenate 'string
@@ -194,6 +225,27 @@ be used, and for the query to be searched."
 	       (format nil "Searching for \"~a\" in ~a..."
 		       search-input engine-atom))
 	      (call-browser (build-search-query search-input engine-atom))))))))
+
+(defun request-docs ()
+  "Prompts the documentation search menu. Asks for a docset
+and then searches the entry on it."
+  (let ((docset-result
+	 (request-input "Docset?"
+			(options-to-list *zeal-docs*))))
+    (multiple-value-bind (docset-atom docset-prefix)
+	(match-output docset-result *zeal-docs*)
+      (if (null docset-prefix)
+	  (when (not (null docset-atom))
+	    (send-notification
+	     "POWERLISP: ERROR"
+	     (format nil "Unknown docset \"~a\"" docset-atom)))
+	  (let ((search-input (request-input "Search target?" nil)))
+	    (when (not (null search-input))
+	      (send-notification
+	       "POWERLISP DOC SEARCH"
+	       (format nil "Searching for \"~a\" in ~a DOCS..."
+		       search-input docset-atom))
+	      (call-docs docset-prefix search-input)))))))
     
 
 (defun request-from-favorites ()
@@ -202,13 +254,16 @@ favorite websites prompted, or a command (such as search), or even
 for text which will be converted to a search query."
   (let ((command-result
 	 (request-input "Website, command, plain search?"
-			(append '(search)
+			(append '(search
+				  docs)
 				(options-to-list *favorite-websites*)))))
     (multiple-value-bind (command-atom command-url)
 	(match-output command-result *favorite-websites*)
       (cond ((null command-url)
 	     (cond ((eq command-atom 'search)
 		    (request-search))
+		   ((eq command-atom 'docs)
+		    (request-docs))
 		   (t (when (not (null command-result))
 			(send-notification
 			 "POWERLISP PLAIN SEARCH"
