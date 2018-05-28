@@ -132,7 +132,7 @@ selection options. Yields the user input as a string."
 
 (defun call-browser (&rest website)
   "Effectively calls the browser with the given website as argument."
-  #+SBCL (sb-ext:run-program *browser-command* website))
+  #+SBCL (sb-ext:run-program *browser-command* website :wait nil))
 
 
 ;; ============================================
