@@ -45,16 +45,67 @@ you don't like any or all of these, don't worry; as I just said, go ahead and ch
 script, hack it as much as you want. Just remember to not hurt the MIT License included, which
 I believe is permissive enough.
 
-## How do I make it MINE?
+## How do I make it mine?
 
 As stated above, Powerlisp is customizable.
 You can create a file `~/.powerlisp` or `~/.config/powerlisp.lisp` and call whatever
 commands you want to customize the Powerlisp global variables (I'll leave to you to read the
 file and find out which are).
 
-You can also use the functions `powerlisp-add-favorite`, `powerlisp-add-search-engine`,
-`powerlisp-add-multi-favorites` and `powerlisp-add-multi-search-engines` to
-add more favorite websites and search engines to the menus.
+You can also use the specific functions for adding new features, as stated in the examples below.
+
+### Examples
+
+Below you can see what you may want to add as commands for Powerlisp.
+Keep in mind that you can also make extensive use of everything I defined on the script file as well, so
+the possibilities are endless.
+
+#### Adding Google Search Engine and making it the default
+```lisp
+(powerlisp-add-multi-search-engines
+ '((google ("https://google.com/search?q="))))
+ 
+(setf *default-search-engine* 'google)
+```
+
+or
+
+```lisp
+(powerlisp-add-search-engine 'google
+  '("https://google.com/search?q="))
+  
+(setf *default-search-engine* 'google)
+```
+
+#### Adding Common Lisp Brasil to the favorites
+```lisp
+(powerlisp-add-multi-favorites
+ '((clbr . "https://lisp.com.br")))
+```
+
+or
+
+```lisp
+(powerlisp-add-favorite 'clbr "https://lisp.com.br")
+```
+
+#### Adding an external command to the actual commands
+External commands require absolute paths.
+```lisp
+(powerlisp-add-command 'terminal
+  (lambda ()
+    (powerlisp-call-external "/usr/bin/xterm")))
+```
+
+or
+
+
+```lisp
+(defun call-terminal ()
+  (powerlisp-call-external "/usr/bin/xterm"))
+
+(powerlisp-add-command 'terminal #'call-terminal)
+```
 
 ## Why would you use Common Lisp?
 
@@ -69,3 +120,13 @@ It does very, very good stuff, and does it well.
 
 Lastly, I did it because I could. And you should too. Also, learn Common Lisp, you just won't
 regret it.
+
+## Features
+
+- Customizable favorite websites
+- Customizable search engines
+- Customizable commands
+
+### Planned
+- Customizable overall programs (browser, launcher, etc)
+- Smarter tool for building submenus inside commands

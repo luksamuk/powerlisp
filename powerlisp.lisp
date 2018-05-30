@@ -51,9 +51,9 @@
 (defparameter *browser-command* "/usr/bin/firefox")
 (defparameter *notify-command* "/usr/bin/notify-send")
 (defparameter *zeal-command* "/usr/bin/zeal")
-(defparameter *input-command*
-  (list "/usr/bin/dmenu"
-	"-b"
+(defparameter *dmenu-command* "/usr/bin/dmenu")
+(defparameter *input-params*
+  (list "-b"
 	"-fn" *input-font*
 	"-nb" *input-bg*
 	"-nf" *input-fg*
@@ -112,6 +112,8 @@
     (processing  . "processing")
     (rust        . "rust")))
 
+(defparameter *subcommands* nil)
+
 ;; ============================================
 ;; Personal and private Powerlisp files
 ;; Add them to ~/.powerlisp or to ~/.config/powerlisp.lisp.
@@ -152,6 +154,14 @@ when you have many engines."
 		engines-list)))
 
 
+(defun powerlisp-add-command (command callback)
+  "Adds a command to powerlisp.
+command is the command atom, callback must be a zero-arguments function."
+  (when (functionp callback)
+    (setf *subcommands*
+	  (append (list (cons command callback))
+		  *subcommands*))))
+
 ;; Magic for loading default configuration
 (when (probe-file "~/.powerlisp")
   (load "~/.powerlisp"))
@@ -179,9 +189,9 @@ it is sandwiched between the first and last parts."
   "Requests input using your input method. You may provide
 selection options. Yields the user input as a string."
   #+SBCL
-  (let* ((process (sb-ext:run-program (car *input-command*)
+  (let* ((process (sb-ext:run-program *dmenu-command*
 				      (append (list "-p" prompt)
-					      (cdr *input-command*))
+					      *input-params*)
 				      :input :stream
 				      :output :stream
 				      :wait nil))
@@ -212,6 +222,14 @@ selection options. Yields the user input as a string."
 			     ":"
 			     search-query))
 	  :wait nil))
+
+(defun powerlisp-call-external (program-path &rest arguments)
+  (when (and (stringp program-path)
+	     (every #'stringp arguments))
+    #+SBCL (sb-ext:run-program
+	    program-path
+	    arguments
+	    :wait nil)))
 
 
 ;; ============================================
@@ -295,24 +313,34 @@ and then searches the entry on it."
 	       (format nil "Searching for \"~a\" in ~a DOCS..."
 		       search-input docset-atom))
 	      (call-docs docset-prefix search-input)))))))
-    
 
-(defun request-from-favorites ()
+;; ============================================
+;; Build list of common commands
+
+(powerlisp-add-command 'docs   #'request-docs)
+(powerlisp-add-command 'search #'request-search)
+
+(defun request-command (command-atom)
+  "Dispatches the requested command."
+  (let ((function (cdr (assoc command-atom *subcommands*))))
+    (when (functionp function)
+      (funcall function))))
+
+
+(defun run-powerlisp ()
   "Prompts the favorites menu. Asks for the user to type one of the
 favorite websites prompted, or a command (such as search), or even
 for text which will be converted to a search query."
-  (let ((command-result
-	 (request-input "Website, command, plain search?"
-			(append '(search
-				  docs)
-				(options-to-list *favorite-websites*)))))
+  (let* ((subcommands-list (options-to-list *subcommands*))
+	 (command-result
+	  (request-input "Website, command, plain search?"
+			 (append subcommands-list
+				 (options-to-list *favorite-websites*)))))
     (multiple-value-bind (command-atom command-url)
 	(match-output command-result *favorite-websites*)
       (cond ((null command-url)
-	     (cond ((eq command-atom 'search)
-		    (request-search))
-		   ((eq command-atom 'docs)
-		    (request-docs))
+	     (cond ((member command-atom subcommands-list)
+		    (request-command command-atom))
 		   (t (when (not (null command-result))
 			(send-notification
 			 "POWERLISP PLAIN SEARCH"
@@ -330,8 +358,5 @@ for text which will be converted to a search query."
 			command-url))
 	       (call-browser command-url))))))
 
-(defun run-powerlisp ()
-  "Alias for running powerlisp."
-  (request-from-favorites))
 
 (run-powerlisp) ;; Magic happens here.
