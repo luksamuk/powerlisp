@@ -6,9 +6,14 @@ Common Lisp tool for automating the access to websites for Linux power-users.
 Powerlisp is a simple tool to automate your work with dmenu/rofi, and also allowing you
 to navigate through multiple menus.
 
-By using Powerlisp, one can navigate directly to a favorite website, or to search for
-anything on any search engine, given that those are listed on the favorites and search
-engines lists.
+Using Powerlisp, you can:
+- Navigate directly to your favorite websites, in your favorite browser;
+- Perform a direct plain search on your favorite search engine;
+- Search through programming language documentations in Zeal;
+- Customize it and make it yours.
+
+All of this is done by taking advantage of `dmenu`. Needless to say, you will also
+want to have `zeal` installed in order to search for documentation.
 
 Notice that I am not documenting it too much because it is basically a hack on my own
 system. Given that, I made this tool so it would be just extremely easy to take a peek
@@ -39,6 +44,17 @@ engines, programming languages, and that you use DuckDuckGo as your default sear
 you don't like any or all of these, don't worry; as I just said, go ahead and change this
 script, hack it as much as you want. Just remember to not hurt the MIT License included, which
 I believe is permissive enough.
+
+## How do I make it MINE?
+
+As stated above, Powerlisp is customizable.
+You can create a file `~/.powerlisp` or `~/.config/powerlisp.lisp` and call whatever
+commands you want to customize the Powerlisp global variables (I'll leave to you to read the
+file and find out which are).
+
+You can also use the functions `powerlisp-add-favorite`, `powerlisp-add-search-engine`,
+`powerlisp-add-multi-favorites` and `powerlisp-add-multi-search-engines` to
+add more favorite websites and search engines to the menus.
 
 ## Why would you use Common Lisp?
 

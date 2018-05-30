@@ -112,6 +112,52 @@
     (processing  . "processing")
     (rust        . "rust")))
 
+;; ============================================
+;; Personal and private Powerlisp files
+;; Add them to ~/.powerlisp or to ~/.config/powerlisp.lisp.
+;; Use the following functions to add stuff.
+
+(defun powerlisp-add-favorite (atom url)
+  "Add a single favorite website to favorites list."
+  (setf *favorite-websites*
+	(append *favorite-websites*
+		(list (cons atom url)))))
+
+(defun powerlisp-add-search-engine (atom query-parts)
+  "Add a single search engine to search engines list.
+The query-parts parameter must be a list of query components,
+with the first one coming before the query value, and the rest
+coming after the query value. These strings are concatenated
+in this order."
+  (setf *search-engines*
+	(append *search-engines*
+		(list (list atom query-parts)))))
+
+(defun powerlisp-add-multi-favorites (favorites-list)
+  "Adds many favorites to the favorites list.
+Format of the list must follow the format for the favorites list.
+Using this function instead of powerlisp-add-favorite is recommended
+when you have many websites."
+  (setf *favorite-websites*
+	(append *favorite-websites*
+		favorites-list)))
+
+(defun powerlisp-add-multi-search-engines (engines-list)
+  "Adds many search engines  to the search engines list.
+Format of the list must follow the format for the search engines list.
+Using this function instead of powerlisp-add-search-engine is recommended
+when you have many engines."
+  (setf *search-engines*
+	(append *search-engines*
+		engines-list)))
+
+
+;; Magic for loading default configuration
+(when (probe-file "~/.powerlisp")
+  (load "~/.powerlisp"))
+
+(when (probe-file "~/.config/powerlisp.lisp")
+  (load "~/.config/powerlisp.lisp"))
 
 ;; ============================================
 ;; Command calling helpers
