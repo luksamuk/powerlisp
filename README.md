@@ -54,6 +54,63 @@ file and find out which are).
 
 You can also use the specific functions for adding new features, as stated in the examples below.
 
+### Quick user API reference
+
+Those are the functions you'll mostly be using for your scripts and for customization.
+
+#### (powerlisp-add-favorite atom url)
+Add a single favorite website to favorites list.
+
+#### (powerlisp-add-multi-favorites favorites-list)
+Adds many favorites to the favorites list. Format of the list must follow the format for the favorites list.
+Using this function instead of `powerlisp-add-favorite` is recommended when you have many websites.<br/>
+List format example: `'((site1 . "url1") (site2 . "url2") ...)`
+
+#### (powerlisp-add-search-engine atom query-parts)
+Add a single search engine to search engines list.
+The query-parts parameter must be a list of query components, with the first one coming before the query value,
+and the rest coming after the query value. These strings are concatenated in this order.
+
+#### (powerlisp-add-multi-search-engines engines-list)
+Adds many search engines  to the search engines list.
+Format of the list must follow the format for the search engines list. Using this function instead of
+`powerlisp-add-search-engine` is recommended when you have many engines.<br/>
+List format example: `'((engine1 ("url-pre-query-part" "url-post-query1" ...)) (engine2 ...))`
+
+#### (powerlisp-add-command command callback)
+Adds a command to Powerlisp. `command` is the command atom, `callback` must be a zero-arguments function.
+
+#### (powerlisp-add-multi-commands commands-list)
+Adds many commands to Powerlisp at once. The list of commands must be a list comprised of consed
+atoms + procedures.<br/>
+List format example: `(list (cons 'command1 #'procedure1) (cons 'command2 #procedure2) ...)`
+
+#### (powerlisp-spawn-menu prompt alist)
+Spawns an input menu with the given prompt, and offers an alist of values. This function yields two values: an
+atom equivalent to the user input and, if the option selected is valid, yields the associated value as well;
+if not, yields nil instead.<br/>
+Alist format example: `'((atom1 . associated-value1) (atom2 . associated-value2) ...)`
+
+#### (powerlisp-request-user-input &optional prompt)
+Spawns an input menu with no options. The value returned is a plain string containing what the user typed. One can
+customize the prompt by feeding it to this function.
+
+#### (with-powerlisp-options-menu (prompt alist) &body ...)
+Calls an options menu using an alist. If the input matches any of the values on the alist, the input is bound as an
+atom to `option`, and the associated value is bound to `assoc-value`. The body is then executed.
+
+#### (powerlisp-notify text &optional title)
+Sends a notification to the desktop. One can optionally setup the notification title.
+
+#### (powerlisp-call-external program-path &rest arguments)
+Calls an external command and does not wait for the process to finish. `program-path` needs to be an absolute
+path to the binary. `arguments` is a list of strings, where each string is an argument.
+The (optional) arguments need to be isolated, with no whitespace inbetween.
+
+#### (powerlisp-call-browser &rest website)
+Calls the default browser with one (or more) websites to open. This command is basically a specialized version of
+`powerlisp-call-external`, however there is no need to encapsulate the websites into lists.
+
 ### Examples
 
 Below you can see what you may want to add as commands for Powerlisp.
@@ -107,6 +164,26 @@ or
 (powerlisp-add-command 'terminal #'call-terminal)
 ```
 
+#### Creating a submenu for some games
+
+```lisp
+;;; Create an alist of games
+(defparameter *games*
+  '((steam . "/usr/bin/steam")
+    (doom  . "/usr/bin/gzdoom")))
+
+;;; Create a function which yields the game menu
+(defun request-games ()
+  (with-powerlisp-options-menu ("Game?" *games*)
+    ;; On valid selection, we get "option" and "assoc-value"
+    (powerlisp-notify (format nil "Opening game ~a..."
+	                          option))
+    (powerlisp-call-external assoc-value)))
+
+;;; Add a Games menu to the favorites menu
+(powerlisp-add-command 'games #'request-games)
+```
+
 ## Why would you use Common Lisp?
 
 There are a few reasons why. First, I wanted to get away from the Bash implementation as fast
@@ -126,7 +203,7 @@ regret it.
 - Customizable favorite websites
 - Customizable search engines
 - Customizable commands
+- API for building submenus
 
 ### Planned
 - Customizable overall programs (browser, launcher, etc)
-- Smarter tool for building submenus inside commands

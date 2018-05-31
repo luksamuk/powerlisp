@@ -115,61 +115,6 @@
 (defparameter *subcommands* nil)
 
 ;; ============================================
-;; Personal and private Powerlisp files
-;; Add them to ~/.powerlisp or to ~/.config/powerlisp.lisp.
-;; Use the following functions to add stuff.
-
-(defun powerlisp-add-favorite (atom url)
-  "Add a single favorite website to favorites list."
-  (setf *favorite-websites*
-	(append *favorite-websites*
-		(list (cons atom url)))))
-
-(defun powerlisp-add-search-engine (atom query-parts)
-  "Add a single search engine to search engines list.
-The query-parts parameter must be a list of query components,
-with the first one coming before the query value, and the rest
-coming after the query value. These strings are concatenated
-in this order."
-  (setf *search-engines*
-	(append *search-engines*
-		(list (list atom query-parts)))))
-
-(defun powerlisp-add-multi-favorites (favorites-list)
-  "Adds many favorites to the favorites list.
-Format of the list must follow the format for the favorites list.
-Using this function instead of powerlisp-add-favorite is recommended
-when you have many websites."
-  (setf *favorite-websites*
-	(append *favorite-websites*
-		favorites-list)))
-
-(defun powerlisp-add-multi-search-engines (engines-list)
-  "Adds many search engines  to the search engines list.
-Format of the list must follow the format for the search engines list.
-Using this function instead of powerlisp-add-search-engine is recommended
-when you have many engines."
-  (setf *search-engines*
-	(append *search-engines*
-		engines-list)))
-
-
-(defun powerlisp-add-command (command callback)
-  "Adds a command to powerlisp.
-command is the command atom, callback must be a zero-arguments function."
-  (when (functionp callback)
-    (setf *subcommands*
-	  (append (list (cons command callback))
-		  *subcommands*))))
-
-;; Magic for loading default configuration
-(when (probe-file "~/.powerlisp")
-  (load "~/.powerlisp"))
-
-(when (probe-file "~/.config/powerlisp.lisp")
-  (load "~/.config/powerlisp.lisp"))
-
-;; ============================================
 ;; Command calling helpers
 
 (defun *build-command* (command-parts &optional (query nil))
@@ -209,7 +154,7 @@ selection options. Yields the user input as a string."
     (when (listen process-output)
       (read-line process-output))))
 
-(defun call-browser (&rest website)
+(defun powerlisp-call-browser (&rest website)
   "Effectively calls the browser with the given website as argument."
   #+SBCL (sb-ext:run-program *browser-command* website :wait nil))
 
@@ -224,6 +169,10 @@ selection options. Yields the user input as a string."
 	  :wait nil))
 
 (defun powerlisp-call-external (program-path &rest arguments)
+  "Calls an external command and does not wait for the process to
+finish. `program-path` needs to be an absolute path to the binary.
+`arguments` is a list of strings, where each string is an argument.
+The arguments need to be isolated, with no whitespace inbetween."
   (when (and (stringp program-path)
 	     (every #'stringp arguments))
     #+SBCL (sb-ext:run-program
@@ -291,7 +240,7 @@ be used, and for the query to be searched."
 	       "POWERLISP SEARCH"
 	       (format nil "Searching for \"~a\" in ~a..."
 		       search-input engine-atom))
-	      (call-browser (build-search-query search-input engine-atom))))))))
+	      (powerlisp-call-browser (build-search-query search-input engine-atom))))))))
 
 (defun request-docs ()
   "Prompts the documentation search menu. Asks for a docset
@@ -313,6 +262,106 @@ and then searches the entry on it."
 	       (format nil "Searching for \"~a\" in ~a DOCS..."
 		       search-input docset-atom))
 	      (call-docs docset-prefix search-input)))))))
+
+;; ============================================
+;; USER CONFIGURATION API
+;; Add them to ~/.powerlisp or to ~/.config/powerlisp.lisp.
+;; Use the following functions to add stuff.
+
+(defun powerlisp-add-favorite (atom url)
+  "Add a single favorite website to favorites list."
+  (setf *favorite-websites*
+	(append *favorite-websites*
+		(list (cons atom url)))))
+
+(defun powerlisp-add-search-engine (atom query-parts)
+  "Add a single search engine to search engines list.
+The query-parts parameter must be a list of query components,
+with the first one coming before the query value, and the rest
+coming after the query value. These strings are concatenated
+in this order."
+  (setf *search-engines*
+	(append *search-engines*
+		(list (list atom query-parts)))))
+
+(defun powerlisp-add-multi-favorites (favorites-list)
+  "Adds many favorites to the favorites list.
+Format of the list must follow the format for the favorites list.
+Using this function instead of powerlisp-add-favorite is recommended
+when you have many websites."
+  (setf *favorite-websites*
+	(append *favorite-websites*
+		favorites-list)))
+
+(defun powerlisp-add-multi-search-engines (engines-list)
+  "Adds many search engines  to the search engines list.
+Format of the list must follow the format for the search engines list.
+Using this function instead of powerlisp-add-search-engine is recommended
+when you have many engines."
+  (setf *search-engines*
+	(append *search-engines*
+		engines-list)))
+
+
+(defun powerlisp-add-command (command callback)
+  "Adds a command to Powerlisp.
+command is the command atom, callback must be a zero-arguments function."
+  (when (functionp callback)
+    (setf *subcommands*
+	  (append (list (cons command callback))
+		  *subcommands*))))
+
+(defun powerlisp-add-multi-commands (commands-list)
+  "Adds many commands to Powerlisp at once.
+The list of commands must be a list comprised of consed
+atoms + procedures. It is important to maintain this structure in order
+for this to work."
+  (when (every (lambda (entry) (functionp (cdr entry)))
+	       commands-list)
+    (setf *subcommands*
+	  (append commands-list *subcommands*))))
+
+(defun powerlisp-spawn-menu (prompt alist)
+  "Spawns an input menu with the given prompt, and offers an alist
+of values. This function yields two values: an atom equivalent to the user
+input and, if the option selected is valid, yields the associated value
+as well; if not, yields nil instead."
+  (multiple-value-bind (atom assoc-value)
+      (match-output (request-input prompt
+				   (options-to-list alist))
+		    alist)
+    (when assoc-value (values atom assoc-value))))
+
+(defun powerlisp-request-user-input (&optional (prompt "input?"))
+  "Spawns an input menu with no options. The value returned is a
+plain string containing what the user typed. One can customize
+the prompt by feeding it to this function."
+  (request-input prompt nil))
+
+(defmacro with-powerlisp-options-menu ((prompt alist) &body body)
+  "Calls an options menu using an alist. If the input matches any of
+the values on the alist, the input is bound as an atom to `option`,
+and the associated value is bound to `assoc-value`. The body is then
+executed."
+  `(multiple-value-bind (option assoc-value)
+       (powerlisp-spawn-menu ,prompt ,alist)
+     (when assoc-value ,@body)))
+
+(defun powerlisp-notify (text &optional (title "POWERLISP"))
+  "Sends a notification to the desktop. One can optionally setup the
+notification title."
+  (send-notification "POWERLISP" text))
+
+
+;; ============================================
+;; User configuration loading
+
+;; Magic for loading default configuration
+(when (probe-file "~/.powerlisp")
+  (load "~/.powerlisp"))
+
+(when (probe-file "~/.config/powerlisp.lisp")
+  (load "~/.config/powerlisp.lisp"))
 
 ;; ============================================
 ;; Build list of common commands
@@ -348,7 +397,7 @@ for text which will be converted to a search query."
 				 command-result))
                         ;; TODO: I want to be able to just type
                         ;; websites on the future.
-			(call-browser (build-search-query
+			(powerlisp-call-browser (build-search-query
 				       command-result
 				       *default-search-engine*))))))
 	    (t (send-notification
@@ -356,7 +405,7 @@ for text which will be converted to a search query."
 		(format nil "Opening ~a~%(~a)..."
 			command-atom
 			command-url))
-	       (call-browser command-url))))))
+	       (powerlisp-call-browser command-url))))))
 
 
 (run-powerlisp) ;; Magic happens here.
