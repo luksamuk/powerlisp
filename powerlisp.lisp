@@ -25,7 +25,7 @@
 ;;; This script assumes that you are using certain default programs and settings,
 ;;; which are the ones I am using:
 ;;; - SBCL as Common Lisp implementation
-;;; - Font: Fixed 9
+;;; - Font: Fixed Semicondensed 9
 ;;; - Black-and-white theme
 ;;; - DuckDuckGo as default search engine
 ;;; - dmenu as launcher
@@ -42,7 +42,7 @@
 ;; ============================================
 ;; Look and programs customization
 
-(defparameter *input-font*   "xft:Fixed:size=9")
+(defparameter *input-font*   "xft:Fixed:slant=semicondensed:size=9")
 (defparameter *input-bg*     "#FFFFFF")
 (defparameter *input-fg*     "#000000")
 (defparameter *input-sel-bg* "#000000")
@@ -72,7 +72,7 @@
     (netflix    . "https://netflix.com")
     (hooktube   . "https://hooktube.com")
     (protonmail . "https://mail.protonmail.com/login")
-    (github     . "https://github.com")
+    (gitlab     . "https://gitlab.com")
     (linkedin   . "https://linkedin.com")
     (hackernews . "https://news.ycombinator.com")
     (slashdot   . "https://slashdot.org")
