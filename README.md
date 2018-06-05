@@ -28,7 +28,28 @@ very ugly solution built using Bash. Just so you can compare it with how good Li
 All you need to do is invoke it using a command line:
 
 ```bash
-$ sbcl --script /path/to/powerlisp.lisp
+$ sbcl --script /path/to/powerlisp.lisp --no-linedit
+```
+
+You might want, however, to precompile the file and generate a .fasl so you can easily access it.
+
+For that, open SBCL with minimal overhead:
+
+```bash
+$ cd path/to/powerlisp
+$ sbcl --noinform --disable-ldb --lose-on-corruption --end-runtime-options --no-linedit
+```
+
+Then compile it using the REPL:
+
+```lisp
+* (compile-file "powerlisp.lisp")
+```
+
+This will generate a `powerlisp.fasl` file, which you can then load as script using the following command:
+
+```bash
+$ sbcl --script /path/to/powerlisp.fasl --no-linedit
 ```
 
 I built it making heavy use of SBCL's extensions so, unless you send me a PR enabling it
