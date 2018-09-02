@@ -1,0 +1,134 @@
+#+TITLE: Powerlisp
+#+AUTHOR: Lucas Vieira
+#+MAIL: lucasvieira@lisp.com.br
+
+Common Lisp tool for automating tasks for Unix power-users.
+
+* Abstract
+
+Powerlisp is a simple and flexible tool which helps you automate your work. With
+the aid of =dmenu= or =rofi=, this Lisp script allows you to:
+
+- Navigate directly to your favorite websites, in your favorite browser
+  (including incognito mode);
+- Search the web on your favorite search engine (and switch search engines as
+  well);
+- Use flexible configuration files written on Lisp, provided by hygienic user
+  bindings;
+- Create your own menus, submenus and input, while allowing you to extend it
+  from within the user bindings, in any way you want;
+- Hack it any way you'd want and make it yours!
+
+This tool is written with =dmenu= and/or =rofi= in mind, plus =notify-send= for
+desktop notifications, and only runs using the =sbcl= compiler. While it is
+certainly possible to use other implementations, those may require
+implementation-specific extensions, which is what I am using.
+
+I opted for this instead of using any external, cross-implementation package
+(such as Quicklisp) for performance reasons.
+
+
+* Motivation
+
+Back in the day, I used to have a simple tool written in Bash which would allow
+me to open menus and nest them just like you see. The purpose was just to store
+my favorite websites and perform searches on the internet, without directly
+opening the browser in order to do so.
+
+Turns out this approach wasn't very flexible, and extremely hackish; this made
+me realize that bash is also not a language you would want to mess up with, when
+things get heated, due to its lack of easy support to trivial tasks such as
+string manipulation and this sort of thing.
+
+At this point, there were two things I could do: either switch to a shell which
+gives me better scripting capabilities, or use an actual programming language
+to rewrite this tool altogether. As you can see, I chose the latter.
+
+So, why Lisp? Well, because I could, and also to prove a point. Most tools
+nowadays are written in Javascript or Python, two languages which can be much
+slower than Common Lisp at times. However, Common Lisp is a perfectly functional
+and powerful language, albeit a little old. Plus, I just did not want to choose
+those languages, since we see them running everywhere, even though sometimes it
+is not the best use case. Instead, I went ahead and start taking advantage of
+CL's scripting support, something that was already being used on tools such as
+=Roswell=, for example.
+
+And so the first version of this tool arised, though it was a bit lacking; but
+little by little, I started adding things to my taste, which I felt would
+improve my workflow.
+
+
+* Usage
+
+All you need to do is invoke the script using a command line:
+
+#+BEGIN_SRC bash
+sbcl --script /path/to/powerlisp.lisp --no-linedit
+#+END_SRC
+
+You can input this command on your favorite tool for managing keybindings, which
+is native on window managers such as =openbox=, for example. On my end, I use
+=sxhkd= for configuring keybindings, and so I have a shortcut which spawns this
+very line of code.
+
+Make sure you have Steel Bank Common Lisp (=sbcl=) installed. It should work on
+any newer version (currently runs well under version 1.4.10).
+
+Make sure you have =dmenu= installed as well. You can also use =rofi=, though
+using it will require a few lines of configuration; see the Wiki for examples.
+
+
+* Hacking it
+
+As stated before, Powerlisp is highly hackable.
+
+There are some functions, macros and variables which any user may want to
+change; they will be better documented on the Wiki, so make sure you check
+it out. Below I've listed all of them in their order of appearance and
+cathegory, for a quick reference.
+
+Breaking changes have been stated on the CHANGELOG file, so you should probably
+look at it as well.
+
+#+BEGIN_SRC lisp
+;;; Global, customizable variables
+*browser-command*
+*browser-incognito-flag*
+*notify-command*
+*launcher-prompt*
+*launcher-command*
+*launcher-on-bottom*
+*launcher-rofi-emulate-dmenu*
+*launcher-font*
+*launcher-bg*
+*launcher-fg*
+*launcher-sel-bg*
+*launcher-sel-fg*
+*default-search-engine*
+*rerun-main-menu* ; only change when using submenus
+
+;;; Runtime variables, do not change directly
+*search-engines*
+*favorite-websites*
+*subcommands*
+*incognito-mode*
+
+;;; User customization API
+;; Functions
+(powerlisp-add-favorite atom url)
+(powerlisp-add-multi-favorites favorites-list)
+(powerlisp-add-search-engine atom query-parts)
+(powerlisp-add-multi-search-engines engines-list)
+(powerlisp-add-command command callback)
+(powerlisp-add-multi-commands commands-list)
+(powerlisp-spawn-menu prompt alist)
+(powerlisp-notify text &optional title)
+(powerlisp-call-browser website)
+(powerlisp-call-external program-path &rest arguments...)
+
+;; Macros
+(powerlisp-request-user-input &optional prompt)
+(with-powerlisp-user-input (&optional prompt) &body body...)
+(with-powerlisp-options-menu (prompt alist) &body body...)
+(with-powerlisp-menu (prompt alist) &body body...)
+#+END_SRC
