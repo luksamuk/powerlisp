@@ -26,9 +26,7 @@
 ;;;                                TODO-LIST                                 ;;;
 ;;; ======================================================================== ;;;
 ;;
-;; - Re-document everything
-;; - Add private browsing support
-;; - Make changelog
+;; Nothing here currently. Yay!
 
 
 
