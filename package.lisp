@@ -1,0 +1,2 @@
+(defpackage :powerlisp
+  (:use #:cl))

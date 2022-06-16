@@ -1,7 +1,7 @@
-;;;; Powerlisp v1.5
+;;;; Powerlisp v2.0
 ;;;; powerlisp.lisp
 ;;;; A useful utility for Unix powerusers.
-;;;; Copyright © 2018 Lucas Vieira <lucasvieira@lisp.com.br>
+;;;; Copyright © 2018-2020 Lucas Vieira <lucasvieira@protonmail.com>
 ;;;;
 ;;;; Licensed under the MIT License.
 ;;;; Permission is hereby granted, free of charge, to any person obtaining a
@@ -26,8 +26,12 @@
 ;;;                                TODO-LIST                                 ;;;
 ;;; ======================================================================== ;;;
 ;;
-;; Nothing here currently. Yay!
-
+;; - Divide project into many proper Lisp files
+;; - Create .asd file which defines the current system
+;; - Replace SBCL-only functions with UIOP (see run-program and launch-program)
+;; - Remove interning of symbols completely, make string-only comparisons
+;; - Create a roswell/powerlisp.ros script, adding Roswell support
+;; - Add a better customization API
 
 
 ;;; ======================================================================== ;;;
@@ -390,4 +394,4 @@ The arguments need to be isolated, with no whitespace inbetween."
 					    *default-search-engine*)))))
      while *rerun-main-menu*))
 
-(run-powerlisp)
+;; (run-powerlisp)
